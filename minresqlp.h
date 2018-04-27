@@ -1,4 +1,5 @@
 /*
+
  MINRESQLP C++ implementation based on the original code,
  minresqlpModule.f90(09 Sep 2013)
 
@@ -19,9 +20,12 @@
 
   Searching for detailed descriptions, see http://web.stanford.edu/group/SOL/software/minresqlp/
 
-     Date : 27 april 2018
-  Version : 0.0.0
-   Author : Dongkyu Kim <dkkim1005@gist.ac.kr>
+  /-------------- Development info --------------
+       Date : 27 april 2018
+    Version : 0.0.0
+  Developer : Dongkyu Kim <dkkim1005@gist.ac.kr>
+  ----------------------------------------------/
+  
 */
 
 #include <iostream>
