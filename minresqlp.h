@@ -19,9 +19,9 @@
 
   Searching for detailed descriptions, see http://web.stanford.edu/group/SOL/software/minresqlp/
 
-
-  Version: 0.0.0
-  Author : Dongkyu Kim <dkkim1005@gist.ac.kr>
+     Date : 27 april 2018
+  Version : 0.0.0
+   Author : Dongkyu Kim <dkkim1005@gist.ac.kr>
 */
 
 #include <iostream>
