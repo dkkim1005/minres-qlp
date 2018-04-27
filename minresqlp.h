@@ -187,7 +187,7 @@ mainsolver<INFO_t>::solve(INFO_t& client, const bool print) const {
                 xl2(n), y(n), vec2(2), vec3(3);
 
 	double Axnorm    = 0,  beta      = 0,        beta1     = _dnrm2(n, &b[0], 1),
-	       betan     = 0,  ieps      = 0.1/_eps,  pnorm    = 0,
+	       betan     = 0,  ieps      = 0.1/_eps, pnorm     = 0,
 	       relAres   = 0,  relAresl  = 0,        relresl   = 0,     
                t1        = 0,  t2        = 0,        xl2norm   = 0,
 	       cr1       =-1,  cr2       =-1,        cs        =-1,
