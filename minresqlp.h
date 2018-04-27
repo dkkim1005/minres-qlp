@@ -194,9 +194,9 @@ mainsolver<INFO_t>::_dnrm2(const int n, const double* x, const int incx) const {
 
 template<typename INFO_t>
 void
-mainsolver<INFO_t>::printstate(const int iter,       const double x1,     const double xnorm,
-	        	       const double rnorm,   const double Arnorm, const double relres,
-		               const double relAres, const double Anorm,  const double Acond) const {
+mainsolver<INFO_t>::_printstate(const int iter,       const double x1,     const double xnorm,
+	        	        const double rnorm,   const double Arnorm, const double relres,
+		                const double relAres, const double Anorm,  const double Acond) const {
 
 	std::cout << std::setw(7) << "iter "
 		  << std::setw(14) << "x[0] "

@@ -36,12 +36,12 @@ int main(int argc, char* argv[])
 {
 	std::vector<double> b = {3, 4, 3, 1, 2, 3},
 
-			    A = { 0, 0, 0, 0, 0, 0,
-				  0, 1, 0, 0, 0, 0,
-				  0, 0, 0, 0, 0, 0,
+			    A = { 2, 1, 3, 0, 0, 3,
+				  1, 1, 2, 0, 0, 0,
+				  3, 2, 1, 0, 0, 0,
 				  0, 0, 0, 1, 1, 1,
 				  0, 0, 0, 1, 2, 1,
-                                  0, 0, 0, 1, 1, 1};
+                                  3, 0, 0, 1, 1, 1};
 
 	Info client(6, b, A);
 
@@ -49,8 +49,10 @@ int main(int argc, char* argv[])
 
 	solver.solve(client, true);
 
-	for(const auto &xi :client.x) std::cout << xi << " ";
-	std::cout << std::endl;
+	std::cout << "  vector x:"
+		  << std::setprecision(5);
+	for(const auto &xi :client.x) std::cout << std::setw(7) << xi << " ";
+	std::cout << "\n\n";
 
 	return 0;
 }
