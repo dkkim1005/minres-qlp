@@ -36,6 +36,33 @@
 #include <numeric>
 #include <iomanip>
 
+// Ref : https://github.com/gon1332/fort320/blob/master/include/Utils/colors.h
+#ifndef _COLORS_
+#define _COLORS_
+
+/* FOREGROUND */
+#define RST  "\x1B[0m"
+#define KRED  "\x1B[31m"
+#define KGRN  "\x1B[32m"
+#define KYEL  "\x1B[33m"
+#define KBLU  "\x1B[34m"
+#define KMAG  "\x1B[35m"
+#define KCYN  "\x1B[36m"
+#define KWHT  "\x1B[37m"
+
+#define FRED(x) KRED x RST
+#define FGRN(x) KGRN x RST
+#define FYEL(x) KYEL x RST
+#define FBLU(x) KBLU x RST
+#define FMAG(x) KMAG x RST
+#define FCYN(x) KCYN x RST
+#define FWHT(x) KWHT x RST
+
+#define BOLD(x) "\x1B[1m" x RST
+#define UNDL(x) "\x1B[4m" x RST
+
+#endif  /* _COLORS_ */
+
 namespace minresqlp {
 
 struct baseInfo {
@@ -96,6 +123,10 @@ class mainsolver {
 
 		double
 		_dnrm2(const int n, const double* x, const int incx) const;
+
+		void printstate(const int iter,       const double x1,     const double xnorm,
+			        const double rnorm,   const double Arnorm, const double relres,
+				const double relAres, const double Anorm,  const double Acond) const;
 
 		static constexpr double _eps = std::numeric_limits<double>::epsilon();
 };
@@ -160,6 +191,38 @@ mainsolver<INFO_t>::_dnrm2(const int n, const double* x, const int incx) const {
 	return norm;
 }
 
+template<typename INFO_t>
+void
+mainsolver<INFO_t>::printstate(const int iter,       const double x1,     const double xnorm,
+	        	       const double rnorm,   const double Arnorm, const double relres,
+		               const double relAres, const double Anorm,  const double Acond) const {
+
+	std::cout << std::setw(7) << "iter "
+		  << std::setw(14) << "x[0] "
+		  << std::setw(14) << "xnorm "
+		  << std::setw(14) << "rnorm "
+		  << std::setw(14) << "Arnorm "
+		  << std::setw(14) << "Compatible "
+		  << std::setw(14) << "LS "
+		  << std::setw(14) << "norm(A)"
+		  << std::setw(14) << "cond(A)"
+		  << std::endl;
+
+	std::cout << std::setprecision(7)
+		  << std::setw(6)  << iter
+		  << std::setw(14) << x1
+		  << std::setw(14) << xnorm
+		  << std::setw(14) << rnorm
+		  << std::setw(14) << Arnorm
+		  << std::setw(14) << relres
+		  << std::setw(14) << relAres
+		  << std::setw(14) << Anorm
+		  << std::setw(14) << Acond
+		  << "\n\n";
+}
+
+
+
 
 template<typename INFO_t>
 void
@@ -203,35 +266,38 @@ mainsolver<INFO_t>::solve(INFO_t& client, const bool print) const {
                ul        = 0,  ul_QLP    = 0,        ul2       = 0,
 	       ul3       = 0,  ul4       = 0,        vepln     = 0,
                vepln_QLP = 0,  veplnl    = 0,        veplnl2   = 0,
-	       x1last    = 0;
+	       x1last    = 0,  xnorml    = 0,        Arnorml   = 0,
+	       Anorml    = 0,  rnorml    = 0,        Acondl    = 0;
 
     	int QLPiter = 0, flag0 = 0;
 	bool done = false, lastiter = false, likeLS;
 
     	const std::vector<std::string> msg = {
-         "beta_{k+1} < eps.                                                ", //  1
-         "beta2 = 0.  If M = I, b and x are eigenvectors of A.             ", //  2
-         "beta1 = 0.  The exact solution is  x = 0.                        ", //  3
-         "A solution to (poss. singular) Ax = b found, given rtol.         ", //  4
-         "A solution to (poss. singular) Ax = b found, given eps.          ", //  5
-         "Pseudoinverse solution for singular LS problem, given rtol.      ", //  6
-         "Pseudoinverse solution for singular LS problem, given eps.       ", //  7
-         "The iteration limit was reached.                                 ", //  8
-         "The operator defined by Aprod appears to be unsymmetric.         ", //  9
-         "The operator defined by Msolve appears to be unsymmetric.        ", //  10
-         "The operator defined by Msolve appears to be indefinite.         ", //  11
-         "xnorm has exceeded maxxnorm or will exceed it next iteration.    ", //  12
-         "Acond has exceeded Acondlim or 0.1/eps.                          ", //  13
-         "Least-squares problem but no converged solution yet.             ", //  14
-         "A null vector obtained, given rtol.                              "};//  15
+         FBLU("beta_{k+1} < eps.                                                "), //  1
+         FBLU("beta2 = 0.  If M = I, b and x are eigenvectors of A.             "), //  2
+         BOLD(FBLU("beta1 = 0.  The exact solution is  x = 0.                        ")), //  3
+         FGRN("A solution to (poss. singular) Ax = b found, given rtol.         "), //  4
+         BOLD(FGRN("A solution to (poss. singular) Ax = b found, given eps.          ")), //  5
+         FGRN("Pseudoinverse solution for singular LS problem, given rtol.      "), //  6
+         BOLD(FGRN("Pseudoinverse solution for singular LS problem, given eps.       ")), //  7
+         FYEL("The iteration limit was reached.                                 "), //  8
+         BOLD(FRED("The operator defined by Aprod appears to be unsymmetric.         ")), //  9
+         BOLD(FRED("The operator defined by Msolve appears to be unsymmetric.        ")), //  10
+         BOLD(FRED("The operator defined by Msolve appears to be indefinite.         ")), //  11
+         FYEL("xnorm has exceeded maxxnorm or will exceed it next iteration.    "), //  12
+         FYEL("Acond has exceeded Acondlim or 0.1/eps.                          "), //  13
+         FRED("Least-squares problem but no converged solution yet.             "), //  14
+         FYEL("A null vector obtained, given rtol.                              ")};//  15
 
     	x = zero, xl2 = zero;
 
 	if (print) {
 		std::cout << std::setprecision(3);
-		std::cout << std::setw(40) << "Enter MINRES-QLP(INFO)." << std::endl
-			  << std::setw(17) << "  ----------------------------------------------------"
-			  << std::endl
+		std::cout << std::endl
+			  << std::setw(48) << FCYN("Enter MINRES-QLP(INFO)") << std::endl
+			  << "  "
+			  << UNDL("                                                     ")
+			  << "\n\n"
 			  << std::setw(12) << "n ="        << std::setw(6) << n
 			  << std::setw(12) << "||b|| ="    << std::setw(6) << beta1
 			  << std::setw(12) << "precon ="   << std::setw(6) << ((precon_) ? "true" : "false")
@@ -244,7 +310,8 @@ mainsolver<INFO_t>::solve(INFO_t& client, const bool print) const {
 			  << std::setw(12) << "Acondlim =" << std::setw(6) << Acondlim_
 			  << std::setw(12) << "trancond =" << std::setw(6) << trancond_
 			  << std::endl
-			  << std::setw(17) << "  ----------------------------------------------------"
+			  << "  "
+			  << UNDL("                                                     ")
 			  << std::endl << std::endl;
 	}
 
@@ -360,8 +427,9 @@ mainsolver<INFO_t>::solve(INFO_t& client, const bool print) const {
 		}
 
        		// update xnorm
-       		ul4 = ul3;
-       		ul3 = ul2;
+                xnorml = xnorm_;
+       		ul4    = ul3;
+       		ul3    = ul2;
 
 		if (itn_ > 2) ul2 = ( taul2 - etal2 * ul4 - veplnl2 * ul3 ) / gamal2;
 		if (itn_ > 1) ul  = ( taul  - etal  * ul3 - veplnl  * ul2) / gamal;
@@ -463,7 +531,8 @@ mainsolver<INFO_t>::solve(INFO_t& client, const bool print) const {
 
        		// estimate various norms
        		double abs_gama = abs(gama);
-       		Anorm_   = std::max({Anorm_, pnorm, gamal, abs_gama});
+		Anorml = Anorm_;
+       		Anorm_ = std::max({Anorm_, pnorm, gamal, abs_gama});
 
        		if (itn_ == 1) {
           		gmin  = gama;
@@ -475,15 +544,16 @@ mainsolver<INFO_t>::solve(INFO_t& client, const bool print) const {
           		gmin    = std::min({gminl2, gamal, abs_gama});
 		}
 
-       		double Acondl = Acond_;
+       		Acondl = Acond_;
        		Acond_ = Anorm_ / gmin;
-       		double rnorml   = rnorm_;
+       		rnorml   = rnorm_;
        		relresl = relres;
 
        		if (istop_ != 14) rnorm_ = phi;
        		relres = rnorm_ / (Anorm_ * xnorm_ + beta1);
        		vec2[0] = gbar, vec2[1] = dltan;
        		double rootl = _dnrm2(2, &vec2[0], 1);
+		Arnorml  = rnorml * rootl;
        		relAresl = rootl / Anorm_;
 
        		// see if any of the stopping criteria are satisfied.
@@ -532,30 +602,8 @@ mainsolver<INFO_t>::solve(INFO_t& client, const bool print) const {
           		if (rnorm_ > 0 && Anorm_ > 0) relAres = Arnorm_ / (Anorm_*rnorm_);
 		}
 
-		if(print) {
-			std::cout << std::setw(7) << "iter "
-				  << std::setw(14) << "x[0] "
-				  << std::setw(14) << "xnorm "
-				  << std::setw(14) << "rnorm "
-				  << std::setw(14) << "Arnorm "
-				  << std::setw(14) << "Compatible "
-				  << std::setw(14) << "LS "
-				  << std::setw(14) << "norm(A)"
-				  << std::setw(14) << "cond(A)"
-				  << std::endl;
-
-			std::cout << std::setprecision(7)
-				  << std::setw(6) << itn_-1
-				  << std::setw(14) << x1last
-				  << std::setw(14) << xnorm_
-				  << std::setw(14) << rnorm_
-				  << std::setw(14) << (rnorm_/rootl)
-				  << std::setw(14) << relresl
-				  << std::setw(14) << relAresl
-				  << std::setw(14) << Anorm_
-				  << std::setw(14) << Acondl
-				  << "\n\n";
-		}
+		if(print) printstate(itn_-1, x1last, xnorml, rnorml, Arnorml, relresl, relAresl, Anorml, Acondl);
+		
 	}
 
 	// end of iteration loop.
@@ -563,7 +611,11 @@ mainsolver<INFO_t>::solve(INFO_t& client, const bool print) const {
 	client.Arnorm = Arnorm_, client.xnorm = xnorm_, client.Anorm = Anorm_;
         client.Acond  = Acond_;
 
-	if (print) std::cout << "  " << msg[istop_-1] << "\n\n";
+	if (print) {
+		printstate(itn_, x[0], xnorm_, rnorm_, Arnorm_, relres, relAres, Anorm_, Acond_);
+		std::cout << "  " << FCYN("Exit MINRES-QLP") << ": "
+			  << msg[istop_-1] << "\n\n";
+	}
 }
 
 } // end namespace minresqlp
