@@ -124,9 +124,10 @@ class mainsolver {
 		double
 		_dnrm2(const int n, const double* x, const int incx) const;
 
-		void printstate(const int iter,       const double x1,     const double xnorm,
-			        const double rnorm,   const double Arnorm, const double relres,
-				const double relAres, const double Anorm,  const double Acond) const;
+		void
+		_printstate(const int iter,       const double x1,     const double xnorm,
+			    const double rnorm,   const double Arnorm, const double relres,
+			    const double relAres, const double Anorm,  const double Acond) const;
 
 		static constexpr double _eps = std::numeric_limits<double>::epsilon();
 };
@@ -602,7 +603,7 @@ mainsolver<INFO_t>::solve(INFO_t& client, const bool print) const {
           		if (rnorm_ > 0 && Anorm_ > 0) relAres = Arnorm_ / (Anorm_*rnorm_);
 		}
 
-		if(print) printstate(itn_-1, x1last, xnorml, rnorml, Arnorml, relresl, relAresl, Anorml, Acondl);
+		if(print) _printstate(itn_-1, x1last, xnorml, rnorml, Arnorml, relresl, relAresl, Anorml, Acondl);
 		
 	}
 
@@ -612,7 +613,7 @@ mainsolver<INFO_t>::solve(INFO_t& client, const bool print) const {
         client.Acond  = Acond_;
 
 	if (print) {
-		printstate(itn_, x[0], xnorm_, rnorm_, Arnorm_, relres, relAres, Anorm_, Acond_);
+		_printstate(itn_, x[0], xnorm_, rnorm_, Arnorm_, relres, relAres, Anorm_, Acond_);
 		std::cout << "  " << FCYN("Exit MINRES-QLP") << ": "
 			  << msg[istop_-1] << "\n\n";
 	}
