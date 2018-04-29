@@ -28,6 +28,7 @@
   
 */
 
+
 #include <iostream>
 #include <vector>
 #include <limits>
@@ -219,7 +220,8 @@ mainsolver<INFO_t>::_printstate(const int iter,       const double x1,     const
 		  << std::setw(14) << relAres
 		  << std::setw(14) << Anorm
 		  << std::setw(14) << Acond
-		  << "\n\n";
+		  << "\n\n"
+		  << std::flush;
 }
 
 
@@ -295,25 +297,26 @@ mainsolver<INFO_t>::solve(INFO_t& client, const bool print) const {
 	if (print) {
 		std::cout << std::setprecision(3);
 		std::cout << std::endl
-			  << std::setw(48) << FCYN("Enter MINRES-QLP(INFO)") << std::endl
+			  << std::setw(54) << FCYN("Enter MINRES-QLP(INFO)") << std::endl
 			  << "  "
-			  << UNDL("                                                     ")
+			  << UNDL("                                                                ")
 			  << "\n\n"
-			  << std::setw(12) << "n ="        << std::setw(6) << n
-			  << std::setw(12) << "||b|| ="    << std::setw(6) << beta1
-			  << std::setw(12) << "precon ="   << std::setw(6) << ((precon_) ? "true" : "false")
+			  << std::setw(14) << "n  = "        << std::setw(8) << n
+			  << std::setw(14) << "||b||  = "    << std::setw(8) << beta1
+			  << std::setw(14) << "precon  = "   << std::setw(8) << ((precon_) ? "true" : "false")
 			  << std::endl
-			  << std::setw(12) << "itnlim ="   << std::setw(6) << itnlim_
-			  << std::setw(12) << "rtol ="     << std::setw(6) << rtol_
-			  << std::setw(12) << "shift ="    << std::setw(6) << shift_
+			  << std::setw(14) << "itnlim  = "   << std::setw(8) << itnlim_
+			  << std::setw(14) << "rtol  = "     << std::setw(8) << rtol_
+			  << std::setw(14) << "shift  = "    << std::setw(8) << shift_
 			  << std::endl
-			  << std::setw(12) << "raxxnorm =" << std::setw(6) << maxxnorm_
-			  << std::setw(12) << "Acondlim =" << std::setw(6) << Acondlim_
-			  << std::setw(12) << "trancond =" << std::setw(6) << trancond_
+			  << std::setw(14) << "raxxnorm  = " << std::setw(8) << maxxnorm_
+			  << std::setw(14) << "Acondlim  = " << std::setw(8) << Acondlim_
+			  << std::setw(14) << "trancond  = " << std::setw(8) << trancond_
 			  << std::endl
 			  << "  "
-			  << UNDL("                                                     ")
-			  << std::endl << std::endl;
+			  << UNDL("                                                                ")
+			  << std::endl << std::endl
+			  << std::flush;
 	}
 
 	y = b, r1 = b;
@@ -332,7 +335,7 @@ mainsolver<INFO_t>::solve(INFO_t& client, const bool print) const {
 		client.Msolve(n, &y[0], &r2[0]);
 		s = std::inner_product(y.begin(), y.end(), y.begin(), 0.0),
 		t = std::inner_product(r1.begin(), r1.end(), r2.begin(), 0.0);
-		double z = std::abs(s-t), epsa = std::pow((std::abs(s) + _eps)*_eps, 0.33333);
+		double z = std::abs(s-t), epsa = (std::abs(s) + _eps)*std::pow(_eps, 0.33333);
 		if (z > epsa) istop_ = 10;
 	}
 
@@ -341,7 +344,7 @@ mainsolver<INFO_t>::solve(INFO_t& client, const bool print) const {
 		client.Aprod(n, &w[0], &r2[0]);
 		s = std::inner_product(w.begin(), w.end(), w.begin(), 0.0),
 		t = std::inner_product(y.begin(), y.end(), r2.begin(), 0.0);
-		double z = std::abs(s-t), epsa = std::pow((std::abs(s) + _eps)*_eps, 0.33333);
+		double z = std::abs(s-t), epsa = (std::abs(s) + _eps)*std::pow(_eps, 0.33333);
 		if (z > epsa) istop_ = 9;
 	}
 

@@ -34,16 +34,17 @@ private:
 
 int main(int argc, char* argv[])
 {
-	std::vector<double> b = {3, 4, 3, 1, 2, 3},
+	const int N = 15;
+	std::vector<double> b(N), A(N*N);
 
-			    A = { 2, 1, 3, 0, 0, 3,
-				  1, 1, 2, 0, 0, 0,
-				  3, 2, 1, 0, 0, 0,
-				  0, 0, 0, 1, 1, 1,
-				  0, 0, 0, 1, 2, 1,
-                                  3, 0, 0, 1, 1, 1};
+	for(int i=0; i<N; ++i) {
+		b[i] = i+1;
+		for(int j=0; j<N; ++j) {
+			A[i*N + j] = i*j;
+		}
+	}
 
-	Info client(6, b, A);
+	Info client(N, b, A);
 
 	minresqlp::mainsolver<Info> solver;
 
