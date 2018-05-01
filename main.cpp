@@ -36,6 +36,7 @@ zgemv(const int m, const int n, const dcomplex alpha, const dcomplex *a, const d
 	zgemv_(&trans, &n, &m, &alpha, a, &lda, x, &inc, &beta, y, &inc);
 }
 
+
 // format for a real type matrix 
 struct real_type : public minresqlp::baseInfo<double> {
 	real_type(const int n_, const std::vector<double>& b_, const std::vector<double>& A_)
@@ -54,6 +55,7 @@ private:
 };
 
 
+
 // format for a hermitian matrix
 struct hermite_type : public minresqlp::baseInfo<dcomplex> {
 	hermite_type(const int n_, const std::vector<dcomplex>& b_, const std::vector<dcomplex>& A_)
@@ -70,11 +72,9 @@ private:
 };
 
 
-#define DC(a,b) dcomplex(a,b)
-
 int main(int argc, char* argv[])
 {
-	const int N = 30;
+	const int N = 20;
 	std::vector<double> b(N), A(N*N);
 
 	for(int i=0; i<N; ++i) {
@@ -90,36 +90,46 @@ int main(int argc, char* argv[])
 
 	solver.solve(client, true);
 
-	/*
-	std::cout << "  vector x:"
+	std::cout << "  vector x: "
 		  << std::setprecision(5);
-	for(const auto &xi :client.x) std::cout << std::setw(7) << xi << " ";
+	if(N < 10) {
+		for(const auto &xi :client.x) std::cout << std::setw(7) << xi << " ";
+	} else {
+		for(int i=0; i<5; ++i)   std::cout << std::setw(7) << client.x[i] << " ";
+		std::cout << ".... ";
+		for(int i=N-5; i<N; ++i) std::cout << std::setw(7) << client.x[i] << " ";
+	}
 	std::cout << "\n\n";
-	*/
 
 	std::vector<dcomplex> zb(N), zA(N*N);
 
 	for(int i=0; i<N; ++i) {
-		zb[i] = (i+1.)/dcomplex(N,0);
+		zb[i] = dcomplex(i,i+3);
 		zA[i*N+i] = dcomplex(i, 0)/dcomplex(N,0);
 		for(int j=i+1; j<N; ++j) {
-			zA[i*N + j] = dcomplex(i, j)/dcomplex(N,0);
+			zA[i*N + j] = dcomplex(5*i, j)/dcomplex(N,0);
 			zA[j*N + i] = std::conj(zA[i*N+j]);
 		}
 	}
 
 	hermite_type zclient(N, zb, zA);
+	zclient.itnlim = 20*zb.size();
+	zclient.shift  = 1e-3;
 
 	minresqlp::hermitianSolver<hermite_type> zsolver;
 
 	zsolver.solve(zclient, true);
 
-	/*
-	std::cout << "  vector x:"
+	std::cout << "  vector x: "
 		  << std::setprecision(5);
-	for(const auto &xi :client.x) std::cout << std::setw(7) << xi << " ";
+	if(N < 10) {
+		for(const auto &xi :client.x) std::cout << std::setw(7) << xi << " ";
+	} else {
+		for(int i=0; i<5; ++i)   std::cout << std::setw(7) << client.x[i] << " ";
+		std::cout << ".... ";
+		for(int i=N-5; i<N; ++i) std::cout << std::setw(7) << client.x[i] << " ";
+	}
 	std::cout << "\n\n";
-	*/
 
 	return 0;
 }

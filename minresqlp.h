@@ -107,10 +107,10 @@ struct baseInfo {
 	};
  
 	// inputs
-	const int n, itnlim;
-	const container_t b;
-	const double shift, rtol, maxxnorm, trancond, Acondlim;
-	const bool   useMsolve, disable;
+	int n, itnlim;
+	container_t b;
+	double shift, rtol, maxxnorm, trancond, Acondlim;
+	bool   useMsolve, disable;
 
 	// outputs
 	container_t x;
@@ -832,21 +832,21 @@ hermitianSolver<INFO_t>::solve(INFO_t& client, const bool print) const
 		     NORMMAX = std::pow(10.0, std::floor(std::log(1./_eps)/std::log(10)/2.));
 
 	const std::vector<std::string> msg = {
-         "beta_{k+1} < eps.                                                ", // 1
-         "beta2 = 0.  If M = I, b and x are eigenvectors of A.             ", // 2
-         "beta1 = 0.  The exact solution is  x = 0.                        ", // 3
-         "A solution to (poss. singular) Ax = b found, given rtol.         ", // 4
-         "A solution to (poss. singular) Ax = b found, given eps.          ", // 5
-         "Pseudoinverse solution for singular LS problem, given rtol.      ", // 6
-         "Pseudoinverse solution for singular LS problem, given eps.       ", // 7
-         "The iteration limit was reached.                                 ", // 8
-         "The operator defined by Aprod appears to be non-Hermitian.       ", // 9
-         "The operator defined by Msolve appears to be non-Hermitian.      ", // 10
-         "The operator defined by Msolve appears to be indefinite.         ", // 11
-         "xnorm has exceeded maxxnorm  or will exceed it next iteration.   ", // 12
-         "Acond has exceeded Acondlim or 0.1/eps.                          ", // 13
-         "Least-squares problem but no converged solution yet.             ", // 14
-         "A null vector obtained, given rtol.                              "};// 15
+         FBLU("beta_{k+1} < eps.                                                "), // 1
+         FBLU("beta2 = 0.  If M = I, b and x are eigenvectors of A.             "), // 2
+         BOLD(FBLU("beta1 = 0.  The exact solution is  x = 0.                        ")), // 3
+         FGRN("A solution to (poss. singular) Ax = b found, given rtol.         "), // 4
+         BOLD(FGRN("A solution to (poss. singular) Ax = b found, given eps.          ")), // 5
+         FGRN("Pseudoinverse solution for singular LS problem, given rtol.      "), // 6
+         BOLD(FGRN("Pseudoinverse solution for singular LS problem, given eps.       ")), // 7
+         FYEL("The iteration limit was reached.                                 "), // 8
+         BOLD(FRED("The operator defined by Aprod appears to be non-Hermitian.       ")), // 9
+         BOLD(FRED("The operator defined by Msolve appears to be non-Hermitian.      ")), // 10
+         BOLD(FRED("The operator defined by Msolve appears to be indefinite.         ")), // 11
+         FYEL("xnorm has exceeded maxxnorm  or will exceed it next iteration.   "), // 12
+         FYEL("Acond has exceeded Acondlim or 0.1/eps.                          "), // 13
+         FRED("Least-squares problem but no converged solution yet.             "), // 14
+         FYEL("A null vector obtained, given rtol.                              ")};// 15
 
 	shift_ = client.shift;
 	checkA_ = true;
