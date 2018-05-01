@@ -84,12 +84,13 @@ struct baseInfo {
 		 const double rtol_      = 1e-16,
 		 const double maxxnorm_  = 1e7,
 		 const double trancond_  = 1e7,
-		 const double Acondlim_  = 1e15)
+		 const double Acondlim_  = 1e15,
+		 const bool   print_     = false)
 
 	: // initialize list for inputs
 	  n(n_), b(b_), itnlim(itnlim_<0 ? 4*n_ : itnlim_),
 	  shift(shift_), useMsolve(useMsolve_), disable(disable_), rtol(rtol_),
-	  maxxnorm(maxxnorm_), trancond(trancond_), Acondlim(Acondlim_),
+	  maxxnorm(maxxnorm_), trancond(trancond_), Acondlim(Acondlim_), print(print_),
 
 	  // initialize list for outputs
 	  x(n_), istop(0), itn(0), rnorm(0),
@@ -110,7 +111,7 @@ struct baseInfo {
 	int n, itnlim;
 	container_t b;
 	double shift, rtol, maxxnorm, trancond, Acondlim;
-	bool   useMsolve, disable;
+	bool   useMsolve, disable, print;
 
 	// outputs
 	container_t x;
@@ -123,7 +124,7 @@ class realSolver {
 	typedef std::vector<double> dvector;
 	public:
 		void
-		solve(INFO_t& client, const bool print = false) const;
+		solve(INFO_t& client) const;
 	private:
 		void
 		_symortho(const double& a, const double& b, double &c, double &s, double &r) const;
@@ -233,7 +234,7 @@ realSolver<INFO_t>::_printstate(const int iter,       const double x1,     const
 
 template<typename INFO_t>
 void
-realSolver<INFO_t>::solve(INFO_t& client, const bool print) const {
+realSolver<INFO_t>::solve(INFO_t& client) const {
 	const int n = client.n;
 	const dvector &b = client.b, zero(n,0);
 	dvector& x = client.x;
@@ -298,7 +299,7 @@ realSolver<INFO_t>::solve(INFO_t& client, const bool print) const {
 
     	x = zero, xl2 = zero;
 
-	if (print) {
+	if (client.print) {
 		std::cout << std::setprecision(3);
 		std::cout << std::endl
 			  << std::setw(54) << FCYN("Enter MINRES-QLP(INFO)") << std::endl
@@ -610,7 +611,7 @@ realSolver<INFO_t>::solve(INFO_t& client, const bool print) const {
           		if (rnorm_ > 0 && Anorm_ > 0) relAres = Arnorm_ / (Anorm_*rnorm_);
 		}
 
-		if(print) _printstate(itn_-1, x1last, xnorml, rnorml, Arnorml, relresl, relAresl, Anorml, Acondl);
+		if(client.print) _printstate(itn_-1, x1last, xnorml, rnorml, Arnorml, relresl, relAresl, Anorml, Acondl);
 		
 	}
 
@@ -619,7 +620,7 @@ realSolver<INFO_t>::solve(INFO_t& client, const bool print) const {
 	client.Arnorm = Arnorm_, client.xnorm = xnorm_, client.Anorm = Anorm_;
         client.Acond  = Acond_;
 
-	if (print) {
+	if (client.print) {
 		_printstate(itn_, x[0], xnorm_, rnorm_, Arnorm_, relres, relAres, Anorm_, Acond_);
 		std::cout << "  " << FCYN("Exit MINRES-QLP") << ": "
 			  << msg[istop_-1] << "\n\n";
@@ -637,7 +638,7 @@ class hermitianSolver
 {
 	public:
 		void
-		solve(INFO_t& client, const bool print = false) const;
+		solve(INFO_t& client) const;
 
 	private:
 		void
@@ -792,7 +793,7 @@ hermitianSolver<INFO_t>::_zsymortho(const dcomplex& a, const dcomplex& b, double
 
 template<typename INFO_t>
 void
-hermitianSolver<INFO_t>::solve(INFO_t& client, const bool print) const
+hermitianSolver<INFO_t>::solve(INFO_t& client) const
 {
 	const int n = client.n;
 	const zvector &b = client.b, zero(n,0);
@@ -917,7 +918,7 @@ hermitianSolver<INFO_t>::solve(INFO_t& client, const bool print) const
 	wl     = zero;
 	done   = false;
 
-	if (print) {
+	if (client.print) {
 		std::cout << std::setprecision(3);
 		std::cout << std::endl
 			  << std::setw(54) << FCYN("Enter MINRES-QLP(INFO)") << std::endl
@@ -1219,7 +1220,12 @@ hermitianSolver<INFO_t>::solve(INFO_t& client, const bool print) const
 			if (rnorm_ > 0 && Anorm_ > 0) relAres = Arnorm_ / (Anorm_*rnorm_);
 		}
 
-		if(print) _printstate(itn_-1, x1last, xnorml, rnorml, Arnorml, relresl, relAresl, Anorml, Acondl);
+		if (client.print) {
+			if (itn_ <= 11 || itn_%10 == 1) {
+				_printstate(itn_-1, x1last, xnorml, rnorml, Arnorml, relresl, relAresl, Anorml, Acondl);
+				if (itn_ == 11) std::cout << std::endl;
+			}
+		}
 
 		if (istop_ != flag0) break;
 
@@ -1229,7 +1235,7 @@ hermitianSolver<INFO_t>::solve(INFO_t& client, const bool print) const
 	client.Arnorm = Arnorm_, client.xnorm = xnorm_, client.Anorm = Anorm_;
 	client.Acond = Acond_;
 
-	if (print) {
+	if (client.print) {
 		_printstate(itn_, x[0], xnorm_, rnorm_, Arnorm_, relres, relAres, Anorm_, Acond_);
 		std::cout << "  " << FCYN("Exit MINRES-QLP") << ": "
 			  << msg[istop_-1] << "\n\n";

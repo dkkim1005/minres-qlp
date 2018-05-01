@@ -55,7 +55,6 @@ private:
 };
 
 
-
 // format for a hermitian matrix
 struct hermite_type : public minresqlp::baseInfo<dcomplex> {
 	hermite_type(const int n_, const std::vector<dcomplex>& b_, const std::vector<dcomplex>& A_)
@@ -66,6 +65,11 @@ struct hermite_type : public minresqlp::baseInfo<dcomplex> {
 		zgemv(_nrowA, n, 1, &_A[0], x, 0, y);
 	}
 
+	virtual void
+	Msolve(const int n, const dcomplex *x, dcomplex *y) const {
+		for (int i=0; i<n; ++i) y[i] = dcomplex(1e-10, 0)*x[i];
+	}
+
 private:
 	const std::vector<dcomplex> _A;
 	const int _nrowA;
@@ -74,21 +78,23 @@ private:
 
 int main(int argc, char* argv[])
 {
-	const int N = 20;
+	const int N = 500;
 	std::vector<double> b(N), A(N*N);
 
 	for(int i=0; i<N; ++i) {
 		b[i] = i+1;
 		for(int j=0; j<N; ++j) {
-			A[i*N + j] = i*j;
+			A[i*N + j] = i*j + 1;
 		}
 	}
 
 	real_type client(N, b, A);
+	client.print = true;
 
 	minresqlp::realSolver<real_type> solver;
 
-	solver.solve(client, true);
+	std::cout << BOLD("\n\n   / Real type matrix solver(Ax=b) /") << std::endl;
+	solver.solve(client);
 
 	std::cout << "  vector x: "
 		  << std::setprecision(5);
@@ -100,6 +106,10 @@ int main(int argc, char* argv[])
 		for(int i=N-5; i<N; ++i) std::cout << std::setw(7) << client.x[i] << " ";
 	}
 	std::cout << "\n\n";
+
+	for(int i=0; i<5; ++i) std::cout << BOLD(FYEL("   ---------------------"));
+	
+	std::cout << std::endl;
 
 	std::vector<dcomplex> zb(N), zA(N*N);
 
@@ -113,21 +123,23 @@ int main(int argc, char* argv[])
 	}
 
 	hermite_type zclient(N, zb, zA);
-	zclient.itnlim = 20*zb.size();
-	zclient.shift  = 1e-3;
+	zclient.useMsolve = false;
+	zclient.maxxnorm = 1e15;
+	zclient.print = true;
 
+	std::cout << BOLD("\n\n   / Hermitian matrix solver(Ax=b) /") << std::endl;
 	minresqlp::hermitianSolver<hermite_type> zsolver;
 
-	zsolver.solve(zclient, true);
+	zsolver.solve(zclient);
 
 	std::cout << "  vector x: "
 		  << std::setprecision(5);
 	if(N < 10) {
-		for(const auto &xi :client.x) std::cout << std::setw(7) << xi << " ";
+		for(const auto &xi :zclient.x) std::cout << std::setw(7) << xi << " ";
 	} else {
-		for(int i=0; i<5; ++i)   std::cout << std::setw(7) << client.x[i] << " ";
+		for(int i=0; i<5; ++i)   std::cout << std::setw(7) << zclient.x[i] << " ";
 		std::cout << ".... ";
-		for(int i=N-5; i<N; ++i) std::cout << std::setw(7) << client.x[i] << " ";
+		for(int i=N-5; i<N; ++i) std::cout << std::setw(7) << zclient.x[i] << " ";
 	}
 	std::cout << "\n\n";
 
