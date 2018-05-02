@@ -78,7 +78,7 @@ private:
 
 int main(int argc, char* argv[])
 {
-	const int N = 500;
+	const int N = 20;
 	std::vector<double> b(N), A(N*N);
 
 	for(int i=0; i<N; ++i) {
@@ -107,7 +107,7 @@ int main(int argc, char* argv[])
 	}
 	std::cout << "\n\n";
 
-	for(int i=0; i<5; ++i) std::cout << BOLD(FYEL("   ---------------------"));
+	for(int i=0; i<5; ++i) std::cout << BOLD(FYEL("------------------------"));
 	
 	std::cout << std::endl;
 
@@ -123,9 +123,10 @@ int main(int argc, char* argv[])
 	}
 
 	hermite_type zclient(N, zb, zA);
+	// Setting options
 	zclient.useMsolve = false;
-	zclient.maxxnorm = 1e15;
-	zclient.print = true;
+	zclient.maxxnorm  = 1e7;
+	zclient.print     = true;
 
 	std::cout << BOLD("\n\n   / Hermitian matrix solver(Ax=b) /") << std::endl;
 	minresqlp::hermitianSolver<hermite_type> zsolver;

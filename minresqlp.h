@@ -436,7 +436,7 @@ realSolver<INFO_t>::solve(INFO_t& client) const {
 		}
 
        		// update xnorm
-                xnorml = xnorm_;
+                double xnorml = xnorm_;
        		ul4    = ul3;
        		ul3    = ul2;
 
@@ -553,9 +553,9 @@ realSolver<INFO_t>::solve(INFO_t& client) const {
           		gmin    = std::min({gminl2, gamal, abs_gama});
 		}
 
-       		Acondl = Acond_;
+       		double Acondl = Acond_;
        		Acond_ = Anorm_ / gmin;
-       		rnorml   = rnorm_;
+       		double rnorml   = rnorm_;
        		relresl = relres;
 
        		if (istop_ != 14) rnorm_ = phi;
@@ -658,6 +658,7 @@ class hermitianSolver
 			    const double relAres, const double Anorm,  const double Acond) const;
 
 		static constexpr double _eps = std::numeric_limits<double>::epsilon();
+		static constexpr double _realmin = std::numeric_limits<double>::min();
 };
 
 template<typename INFO_t>
@@ -772,9 +773,9 @@ hermitianSolver<INFO_t>::_zsymortho(const dcomplex& a, const dcomplex& b, double
 {
 	double t, abs_a = std::abs(a), abs_b = std::abs(b);
 
-	if (abs_b <= _eps) {
+	if (abs_b <= _realmin) {
 		c = 1., s = dcomplex(0,0), r = a;
-	} else if (abs_a <= _eps) {
+	} else if (abs_a <= _realmin) {
 		c = 0, s = 1, r = b;
 	} else if (abs_b > abs_a) {
 		t = abs_a/abs_b;
@@ -808,22 +809,22 @@ hermitianSolver<INFO_t>::solve(INFO_t& client) const
 	zvector r1(n), r2(n), v(n), w(n), wl(n), wl2(n),
 		xl2(n), y(n), vec2(2), vec3(3);
 
-	double  abs_gama, Acondl, alfa, Anorml, Arnorml,
-            	Axnorm = 0, beta = 0, beta1, betal, betan,
-            	epsa, epsx, gmin = 0, gminl, gminl2, ieps, pnorm = 0,
-            	relAres = 0, relAresl = 0, relres, relresl = 0,
-            	rnorml, rootl, t1, t2, xl2norm = 0,
-            	xnorm_tmp, xnorml, z, cr1 = -1, cr2 = -1, cs = -1;
+	double  Axnorm   = 0, beta    = 0, gmin    = 0,
+		gminl    = 0, pnorm   = 0, relAres = 0,
+		relAresl = 0, relresl = 0, t1      = 0,
+		t2       = 0, xl2norm = 0, cr1     =-1,
+		cr2      = -1, cs     =-1;
 
-	dcomplex dbar = dcomplex(0,0), dlta, dlta_QLP, dlta_tmp,
-		 dltan = dcomplex(0,0), epln, eplnn = dcomplex(0,0), eta = dcomplex(0,0),
-		 etal = dcomplex(0,0), etal2 = dcomplex(0,0), gama = dcomplex(0,0), gama_QLP,
-		 gama_tmp, gamal = dcomplex(0,0), gamal_QLP, gamal_tmp,
-		 gamal2 = dcomplex(0,0), gamal3, gbar, phi,
-		 s, sn = dcomplex(0,0), sr1 = dcomplex(0,0), sr2 = dcomplex(0,0),
-		 t, tau = dcomplex(0,0), taul = dcomplex(0,0), taul2, u = dcomplex(0,0), u_QLP,
-		 ul = dcomplex(0,0), ul_QLP, ul2 = dcomplex(0,0), ul2_QLP, ul3 = dcomplex(0,0), ul4,
-		 vepln = dcomplex(0,0), vepln_QLP, veplnl = dcomplex(0,0), veplnl2 = dcomplex(0,0), x1last;
+	dcomplex dbar      = dcomplex(0,0), dltan     = dcomplex(0,0), eplnn     = dcomplex(0,0),
+		 eta       = dcomplex(0,0), etal      = dcomplex(0,0), etal2     = dcomplex(0,0),
+		 gama      = dcomplex(0,0), gama_QLP  = dcomplex(0,0), gamal     = dcomplex(0,0),
+		 gamal_QLP = dcomplex(0,0), gamal_tmp = dcomplex(0,0), gamal2    = dcomplex(0,0),
+		 s         = dcomplex(0,0), sn        = dcomplex(0,0), sr1       = dcomplex(0,0),
+		 sr2       = dcomplex(0,0), t         = dcomplex(0,0), tau       = dcomplex(0,0),
+		 taul      = dcomplex(0,0), u         = dcomplex(0,0), u_QLP     = dcomplex(0,0),
+		 ul        = dcomplex(0,0), ul_QLP    = dcomplex(0,0), ul2       = dcomplex(0,0),
+		 ul3       = dcomplex(0,0), vepln     = dcomplex(0,0), vepln_QLP = dcomplex(0,0),
+		 veplnl    = dcomplex(0,0), veplnl2   = dcomplex(0,0), x1last    = x[0];
 
 	int QLPiter = 0, flag0 = 0;
 	bool done, lastiter, likeLS;
@@ -849,20 +850,19 @@ hermitianSolver<INFO_t>::solve(INFO_t& client) const
          FRED("Least-squares problem but no converged solution yet.             "), // 14
          FYEL("A null vector obtained, given rtol.                              ")};// 15
 
-	shift_ = client.shift;
-	checkA_ = true;
-	disable_ = client.disable;
-	itnlim_ = client.itnlim;
-	rtol_ = client.rtol;
+	shift_    = client.shift,
+	checkA_   = true;
+	disable_  = client.disable;
+	itnlim_   = client.itnlim;
+	rtol_     = client.rtol;
 	maxxnorm_ = std::min({client.maxxnorm, 1./_eps});
 	trancond_ = std::min({client.trancond, NORMMAX});
 	Acondlim_ = client.Acondlim;
-	precon_ = client.useMsolve;
-	lastiter = false;
+	precon_   = client.useMsolve;
+	lastiter  = false;
 
 	istop_   = flag0;
-	beta1    = _znrm2(n, &b[0], 1);
-	ieps     = 0.1/_eps;
+	double beta1 = _znrm2(n, &b[0], 1), ieps     = 0.1/_eps;
 
 	x        = zero;
 	xl2      = zero;
@@ -875,7 +875,6 @@ hermitianSolver<INFO_t>::solve(INFO_t& client) const
 		client.Msolve(n, &b[0], &y[0]);
 	}
 
-	//beta1 = (std::inner_product(b.begin(), b.end(), y.begin(), dcomplex(0,0))).real();
 	beta1 = (_zdotc(n, &b[0], 1, &y[0], 1)).real();
 
 	if (beta1<0 && _znrm2(n, &y[0], 1)>_eps) istop_ = 11;
@@ -886,32 +885,25 @@ hermitianSolver<INFO_t>::solve(INFO_t& client) const
 
 	if (checkA_ && precon_) {
 		client.Msolve(n, &y[0], &r2[0]);
-		//s = std::inner_product( y.begin(),  y.end(),  y.begin(), dcomplex(0,0));
 		s = _zdotc(n, &y[0], 1, &y[0], 1);
-		//t = std::inner_product(r1.begin(), r1.end(), r2.begin(), dcomplex(0,0));
 		t = _zdotc(n, &r1[0], 1, &r2[0], 1);
-		z = std::abs(s-t);
-		epsa = (std::abs(s) + _eps) * std::pow(_eps, 0.33333);
+		double z = std::abs(s-t), epsa = (std::abs(s) + _eps) * std::pow(_eps, 0.33333);
 		if (z > epsa) istop_ = 10;
 	}
 
 	if (checkA_) {
 		client.Aprod(n, &y[0], &w[0]);
 		client.Aprod(n, &w[0], &r2[0]);
-		//s = std::inner_product(w.begin(), w.end(), w.begin(), dcomplex(0,0));
 		s = _zdotc(n, &w[0], 1, &w[0], 1);
-		//t = std::inner_product(y.begin(), y.end(), r2.begin(), dcomplex(0,0));
 		t = _zdotc(n, &y[0], 1, &r2[0], 1);
-		z = std::abs(s-t);
-		epsa = (std::abs(s) + _eps)*std::pow(_eps, 0.33333);
-
+		double z = std::abs(s-t), epsa = (std::abs(s) + _eps)*std::pow(_eps, 0.33333);
 		if (z > epsa) istop_ = 9;
 	}
 
-	betan  = beta1;
-	phi    = dcomplex(beta1, 0);
+	double betan  = beta1;
+	dcomplex phi    = dcomplex(beta1, 0);
 	rnorm_ = betan;
-	relres = rnorm_ / (Anorm_*xnorm_ + beta1);
+	double relres = rnorm_ / (Anorm_*xnorm_ + beta1);
 	relAres= 0;
 	r2     = b;
 	w      = zero;
@@ -947,14 +939,14 @@ hermitianSolver<INFO_t>::solve(INFO_t& client) const
 	while (istop_ <= flag0) {
 		itn_ += 1; // k = itn = 1 first time through
 
-		betal  = beta;               // betal = betak
+		double betal  = beta;               // betal = betak
 		beta   = betan;
 		s      = 1./beta;         // Normalize previous vector (in y).
 		for (int index=0; index<n; ++index) v[index] = s*y[index]; // v = vk if P = I.
 
 		client.Aprod(n, &v[0], &y[0]);
 
-		if (std::abs(shift_) >= _eps) {
+		if (std::abs(shift_) >= _realmin) {
 			for (int index=0; index<n; ++index) y[index] += -shift_*v[index];
 		}
 
@@ -962,8 +954,7 @@ hermitianSolver<INFO_t>::solve(INFO_t& client) const
 			for (int index=0; index<n; ++index) y[index] += (-beta/betal)*r1[index];
 		}
 
-		//alfa = (std::inner_product(v.begin(), v.end(), y.begin(), dcomplex(0,0))).real();
-		alfa = (_zdotc(n, &v[0], 1, &y[0], 1)).real();
+		double alfa = (_zdotc(n, &v[0], 1, &y[0], 1)).real();
 		for (int index=0; index<n; ++index) y[index] += (-alfa/beta)*r2[index];
 		r1 = r2;
 		r2 = y;
@@ -972,7 +963,6 @@ hermitianSolver<INFO_t>::solve(INFO_t& client) const
 			betan = _znrm2(n, &y[0], 1);
 		} else {
 			client.Msolve(n, &r2[0], &y[0]);
-			//betan = (std::inner_product(r2.begin(), r2.end(), y.begin(), dcomplex(0,0))).real();
 			betan = (_zdotc(n, &r2[0], 1, &y[0], 1)).real();
 			if (betan > 0) {
 				betan = std::sqrt(betan);
@@ -995,21 +985,21 @@ hermitianSolver<INFO_t>::solve(INFO_t& client) const
 		//   [gbar k dbar k+1]   [sn -cs][alfak betak+1].
 
 		dbar   = dltan;
-		dlta   = cs * dbar  +  sn * alfa;  // dlta1  = 0         deltak
-		epln   = eplnn;
-		gbar   = sn * dbar  -  cs * alfa;  // gbar 1 = alfa1     gbar k
+		dcomplex dlta   = cs * dbar  +  sn * alfa;  // dlta1  = 0         deltak
+		dcomplex epln   = eplnn;
+		dcomplex gbar   = sn * dbar  -  cs * alfa;  // gbar 1 = alfa1     gbar k
 		eplnn  =               sn * betan; // eplnn2 = 0         epslnk+1
 		dltan  =            -  cs * betan; // dbar 2 = beta2     dbar k+1
-		dlta_QLP = dlta;
+		dcomplex dlta_QLP = dlta;
 
 		// Compute the current left reflection Qk
-		gamal3 = gamal2;
+		dcomplex gamal3 = gamal2;
 		gamal2 = gamal;
 		gamal  = gama;
 		_zsymortho(gbar, dcomplex(betan,0), cs, sn, gama);
 
-		gama_tmp = gama;
-		taul2  = taul;
+		dcomplex gama_tmp = gama;
+		dcomplex taul2  = taul;
 		taul   = tau;
 		tau    = cs * phi;
 		phi    = sn * phi;                   //  phik
@@ -1020,7 +1010,7 @@ hermitianSolver<INFO_t>::solve(INFO_t& client) const
 			veplnl2  = veplnl;
 			etal2    = etal;
 			etal     = eta;
-          		dlta_tmp = sr2 * vepln - cr2 * dlta;
+          		dcomplex dlta_tmp = sr2 * vepln - cr2 * dlta;
 			veplnl   = cr2 * vepln + sr2 * dlta;
 			dlta     = dlta_tmp;
 			eta      = sr2 * gama;
@@ -1036,8 +1026,8 @@ hermitianSolver<INFO_t>::solve(INFO_t& client) const
 		}
 
 		// Update xnorm
-		xnorml  = xnorm_;
-		ul4     = ul3;
+		double xnorml  = xnorm_;
+		dcomplex ul4 = ul3;
 		ul3     = ul2;
 
 		if (itn_ > 2) ul2 = ( taul2 - etal2 * ul4 - veplnl2 * ul3 ) / gamal2;
@@ -1045,7 +1035,7 @@ hermitianSolver<INFO_t>::solve(INFO_t& client) const
 		if (itn_ > 1) ul  = ( taul  - etal  * ul3 - veplnl  * ul2) / gamal;
 
 		vec3[0] = xl2norm, vec3[1] = ul2, vec3[2] = ul;
-		xnorm_tmp = _znrm2(3, &vec3[0], 1);     // norm([xl2norm ul2 ul]);
+		double xnorm_tmp = _znrm2(3, &vec3[0], 1);     // norm([xl2norm ul2 ul]);
 
 		if (std::abs(gama) > 0  &&  xnorm_tmp < maxxnorm_) {
           		u       = (tau - eta*ul2 - vepln*ul) / gama;
@@ -1130,29 +1120,28 @@ hermitianSolver<INFO_t>::solve(INFO_t& client) const
 		gamal_QLP = gamal_tmp;
 		vepln_QLP = vepln;
 		gama_QLP  = gama;
-		ul2_QLP   = ul2;
 		ul_QLP    = ul;
 		u_QLP     = u;
 
 		// Estimate various norms
 
-		abs_gama = std::abs(gama);
-		Anorml   = Anorm_;
+		double abs_gama = std::abs(gama);
+		double Anorml   = Anorm_;
 		Anorm_   = std::max({Anorm_, pnorm, abs(gamal), abs_gama});
 
 		if (itn_ == 1) {
 			gmin  = abs_gama;
 			gminl = gmin;
 		} else if (itn_ > 1) {
-			gminl2  = gminl;
+			double gminl2  = gminl;
 			gminl   = gmin;
 			vec3[0] = gminl2, vec3[1] = gamal, vec3[2] = abs_gama;
 			gmin    = std::min({gminl2, std::abs(gamal), abs_gama});
 		}
 
-		Acondl   = Acond_;
+		double Acondl   = Acond_;
 		Acond_   = Anorm_ / gmin;
-		rnorml   = rnorm_;
+		double rnorml   = rnorm_;
 		relresl  = relres;
 
 		if (istop_ != 14) rnorm_ = std::abs(phi);
@@ -1160,13 +1149,13 @@ hermitianSolver<INFO_t>::solve(INFO_t& client) const
 		relres   = rnorm_ / (Anorm_ * xnorm_ + beta1);
 		vec2[0]  = gbar;
 		vec2[1]  = dltan;
-		rootl    = _znrm2(2, &vec2[0], 1);
-		Arnorml  = rnorml * rootl;
+		double rootl    = _znrm2(2, &vec2[0], 1);
+		double Arnorml  = rnorml * rootl;
 		relAresl = rootl / Anorm_;
 
 		// See if any of the stopping criteria are satisfied.
 
-		epsx = Anorm_*xnorm_*_eps;
+		double epsx = Anorm_*xnorm_*_eps;
 		if (istop_ == flag0 || istop_ == 14) {
 			t1   = 1. + relres;
 			t2   = 1. + relAresl;
