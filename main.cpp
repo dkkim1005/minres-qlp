@@ -15,6 +15,10 @@ extern "C" {
 	void zgemv_(const char *TRANS, const int *M, const int *N, const dcomplex *ALPHA,
 		    const dcomplex *A, const int *LDA, const dcomplex *X, const int *INCX,
 		    const dcomplex *BETA, dcomplex *Y, const int *INCY);
+
+	void zhemv_(const char *UPLO, const int *N, const dcomplex *ALPHA, const dcomplex *A,
+		    const int *LDA, const dcomplex *X, const int *INCX,
+		    const dcomplex *BETA, dcomplex *Y, const int *INCY);
 }
 
 void
@@ -36,6 +40,26 @@ zgemv(const int m, const int n, const dcomplex alpha, const dcomplex *a, const d
 	zgemv_(&trans, &n, &m, &alpha, a, &lda, x, &inc, &beta, y, &inc);
 }
 
+void
+zhemv(const int n, const dcomplex alpha, const dcomplex *a,
+      const dcomplex *x, const dcomplex beta, dcomplex *y)
+{
+	const char uplo = 'u';
+	const int inc = 1;
+	zhemv_(&uplo, &n, &alpha, a, &n, x, &inc, &beta, y, &inc);
+}
+
+template<typename float_t>
+void
+transpose(const int n, float_t *A)
+{
+	for (int i=0; i<n; ++i) {
+		for (int j=i+1; j<n; ++j) {
+			const float_t temp = A[i*n + j];
+			A[i*n + j] = A[j*n + i], A[j*n + i] = temp;
+		}
+	}
+}
 
 // format for a real type matrix 
 struct real_type : public minresqlp::baseInfo<double> {
@@ -58,20 +82,26 @@ private:
 // format for a hermitian matrix
 struct hermite_type : public minresqlp::baseInfo<dcomplex> {
 	hermite_type(const int n_, const std::vector<dcomplex>& b_, const std::vector<dcomplex>& A_)
-	: baseInfo<dcomplex>(n_, b_), _A(A_), _nrowA(A_.size()/b_.size()) {}
+	: baseInfo<dcomplex>(n_, b_), _A(A_), _nrowA(A_.size()/b_.size())
+	{
+		transpose(n_, &_A[0]);
+	}
 
 	virtual void
 	Aprod(const int n, const dcomplex *x, dcomplex *y) const {
-		zgemv(_nrowA, n, 1, &_A[0], x, 0, y);
+		//zgemv(_nrowA, n, 1, &_A[0], x, 0, y);
+		zhemv(n, 1, &_A[0], &x[0], 0, &y[0]);
 	}
 
+	/*
 	virtual void
 	Msolve(const int n, const dcomplex *x, dcomplex *y) const {
 		for (int i=0; i<n; ++i) y[i] = dcomplex(1e-10, 0)*x[i];
 	}
+	*/
 
 private:
-	const std::vector<dcomplex> _A;
+	std::vector<dcomplex> _A;
 	const int _nrowA;
 };
 
@@ -93,7 +123,7 @@ int main(int argc, char* argv[])
 
 	minresqlp::realSolver<real_type> solver;
 
-	std::cout << BOLD("\n\n   / Real type matrix solver(Ax=b) /") << std::endl;
+	std::cout << "\n\n   / Real type matrix solver(Ax=b) /" << std::endl;
 	solver.solve(client);
 
 	std::cout << "  vector x: "
@@ -107,7 +137,7 @@ int main(int argc, char* argv[])
 	}
 	std::cout << "\n\n";
 
-	for(int i=0; i<5; ++i) std::cout << BOLD(FYEL("------------------------"));
+	for(int i=0; i<5; ++i) std::cout << "------------------------";
 	
 	std::cout << std::endl;
 
@@ -128,7 +158,7 @@ int main(int argc, char* argv[])
 	zclient.maxxnorm  = 1e7;
 	zclient.print     = true;
 
-	std::cout << BOLD("\n\n   / Hermitian matrix solver(Ax=b) /") << std::endl;
+	std::cout << "\n\n   / Hermitian matrix solver(Ax=b) /" << std::endl;
 	minresqlp::hermitianSolver<hermite_type> zsolver;
 
 	zsolver.solve(zclient);

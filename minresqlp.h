@@ -41,32 +41,6 @@
 #include <numeric>
 #include <iomanip>
 
-// Ref : https://github.com/gon1332/fort320/blob/master/include/Utils/colors.h
-#ifndef _COLORS_
-#define _COLORS_
-
-/* FOREGROUND */
-#define RST  "\x1B[0m"
-#define KRED  "\x1B[31m"
-#define KGRN  "\x1B[32m"
-#define KYEL  "\x1B[33m"
-#define KBLU  "\x1B[34m"
-#define KMAG  "\x1B[35m"
-#define KCYN  "\x1B[36m"
-#define KWHT  "\x1B[37m"
-
-#define FRED(x) KRED x RST
-#define FGRN(x) KGRN x RST
-#define FYEL(x) KYEL x RST
-#define FBLU(x) KBLU x RST
-#define FMAG(x) KMAG x RST
-#define FCYN(x) KCYN x RST
-#define FWHT(x) KWHT x RST
-
-#define BOLD(x) "\x1B[1m" x RST
-#define UNDL(x) "\x1B[4m" x RST
-
-#endif  /* _COLORS_ */
 
 namespace minresqlp {
 
@@ -281,30 +255,29 @@ realSolver<INFO_t>::solve(INFO_t& client) const {
 	bool done = false, lastiter = false, likeLS;
 
     	const std::vector<std::string> msg = {
-         FBLU("beta_{k+1} < eps.                                                "), //  1
-         FBLU("beta2 = 0.  If M = I, b and x are eigenvectors of A.             "), //  2
-         BOLD(FBLU("beta1 = 0.  The exact solution is  x = 0.                        ")), //  3
-         FGRN("A solution to (poss. singular) Ax = b found, given rtol.         "), //  4
-         BOLD(FGRN("A solution to (poss. singular) Ax = b found, given eps.          ")), //  5
-         FGRN("Pseudoinverse solution for singular LS problem, given rtol.      "), //  6
-         BOLD(FGRN("Pseudoinverse solution for singular LS problem, given eps.       ")), //  7
-         FYEL("The iteration limit was reached.                                 "), //  8
-         BOLD(FRED("The operator defined by Aprod appears to be unsymmetric.         ")), //  9
-         BOLD(FRED("The operator defined by Msolve appears to be unsymmetric.        ")), //  10
-         BOLD(FRED("The operator defined by Msolve appears to be indefinite.         ")), //  11
-         FYEL("xnorm has exceeded maxxnorm or will exceed it next iteration.    "), //  12
-         FYEL("Acond has exceeded Acondlim or 0.1/eps.                          "), //  13
-         FRED("Least-squares problem but no converged solution yet.             "), //  14
-         FYEL("A null vector obtained, given rtol.                              ")};//  15
+         "beta_{k+1} < eps.                                                ", //  1
+         "beta2 = 0.  If M = I, b and x are eigenvectors of A.             ", //  2
+         "beta1 = 0.  The exact solution is  x = 0.                        ", //  3
+         "A solution to (poss. singular) Ax = b found, given rtol.         ", //  4
+         "A solution to (poss. singular) Ax = b found, given eps.          ", //  5
+         "Pseudoinverse solution for singular LS problem, given rtol.      ", //  6
+         "Pseudoinverse solution for singular LS problem, given eps.       ", //  7
+         "The iteration limit was reached.                                 ", //  8
+         "The operator defined by Aprod appears to be unsymmetric.         ", //  9
+         "The operator defined by Msolve appears to be unsymmetric.        ", //  10
+         "The operator defined by Msolve appears to be indefinite.         ", //  11
+         "xnorm has exceeded maxxnorm or will exceed it next iteration.    ", //  12
+         "Acond has exceeded Acondlim or 0.1/eps.                          ", //  13
+         "Least-squares problem but no converged solution yet.             ", //  14
+         "A null vector obtained, given rtol.                              "};//  15
 
     	x = zero, xl2 = zero;
 
 	if (client.print) {
 		std::cout << std::setprecision(3);
 		std::cout << std::endl
-			  << std::setw(54) << FCYN("Enter MINRES-QLP(INFO)") << std::endl
+			  << std::setw(54) << "Enter MINRES-QLP(INFO)" << std::endl
 			  << "  "
-			  << UNDL("                                                                ")
 			  << "\n\n"
 			  << std::setw(14) << "n  = "        << std::setw(8) << n
 			  << std::setw(14) << "||b||  = "    << std::setw(8) << beta1
@@ -319,7 +292,6 @@ realSolver<INFO_t>::solve(INFO_t& client) const {
 			  << std::setw(14) << "trancond  = " << std::setw(8) << trancond_
 			  << std::endl
 			  << "  "
-			  << UNDL("                                                                ")
 			  << std::endl << std::endl
 			  << std::flush;
 	}
@@ -622,7 +594,7 @@ realSolver<INFO_t>::solve(INFO_t& client) const {
 
 	if (client.print) {
 		_printstate(itn_, x[0], xnorm_, rnorm_, Arnorm_, relres, relAres, Anorm_, Acond_);
-		std::cout << "  " << FCYN("Exit MINRES-QLP") << ": "
+		std::cout << "  " << "Exit MINRES-QLP" << ": "
 			  << msg[istop_-1] << "\n\n";
 	}
 }
@@ -834,21 +806,21 @@ hermitianSolver<INFO_t>::solve(INFO_t& client) const
 		     NORMMAX = std::pow(10.0, std::floor(std::log(1./_eps)/std::log(10)/2.));
 
 	const std::vector<std::string> msg = {
-         FBLU("beta_{k+1} < eps.                                                "), // 1
-         FBLU("beta2 = 0.  If M = I, b and x are eigenvectors of A.             "), // 2
-         BOLD(FBLU("beta1 = 0.  The exact solution is  x = 0.                        ")), // 3
-         FGRN("A solution to (poss. singular) Ax = b found, given rtol.         "), // 4
-         BOLD(FGRN("A solution to (poss. singular) Ax = b found, given eps.          ")), // 5
-         FGRN("Pseudoinverse solution for singular LS problem, given rtol.      "), // 6
-         BOLD(FGRN("Pseudoinverse solution for singular LS problem, given eps.       ")), // 7
-         FYEL("The iteration limit was reached.                                 "), // 8
-         BOLD(FRED("The operator defined by Aprod appears to be non-Hermitian.       ")), // 9
-         BOLD(FRED("The operator defined by Msolve appears to be non-Hermitian.      ")), // 10
-         BOLD(FRED("The operator defined by Msolve appears to be indefinite.         ")), // 11
-         FYEL("xnorm has exceeded maxxnorm  or will exceed it next iteration.   "), // 12
-         FYEL("Acond has exceeded Acondlim or 0.1/eps.                          "), // 13
-         FRED("Least-squares problem but no converged solution yet.             "), // 14
-         FYEL("A null vector obtained, given rtol.                              ")};// 15
+         "beta_{k+1} < eps.                                                ", // 1
+         "beta2 = 0.  If M = I, b and x are eigenvectors of A.             ", // 2
+         "beta1 = 0.  The exact solution is  x = 0.                        ", // 3
+         "A solution to (poss. singular) Ax = b found, given rtol.         ", // 4
+         "A solution to (poss. singular) Ax = b found, given eps.          ", // 5
+         "Pseudoinverse solution for singular LS problem, given rtol.      ", // 6
+         "Pseudoinverse solution for singular LS problem, given eps.       ", // 7
+         "The iteration limit was reached.                                 ", // 8
+         "The operator defined by Aprod appears to be non-Hermitian.       ", // 9
+         "The operator defined by Msolve appears to be non-Hermitian.      ", // 10
+         "The operator defined by Msolve appears to be indefinite.         ", // 11
+         "xnorm has exceeded maxxnorm  or will exceed it next iteration.   ", // 12
+         "Acond has exceeded Acondlim or 0.1/eps.                          ", // 13
+         "Least-squares problem but no converged solution yet.             ", // 14
+         "A null vector obtained, given rtol.                              "};// 15
 
 	shift_    = client.shift,
 	checkA_   = true;
@@ -913,9 +885,8 @@ hermitianSolver<INFO_t>::solve(INFO_t& client) const
 	if (client.print) {
 		std::cout << std::setprecision(3);
 		std::cout << std::endl
-			  << std::setw(54) << FCYN("Enter MINRES-QLP(INFO)") << std::endl
+			  << std::setw(54) << "Enter MINRES-QLP(INFO)" << std::endl
 			  << "  "
-			  << UNDL("                                                                ")
 			  << "\n\n"
 			  << std::setw(14) << "n  = "        << std::setw(8) << n
 			  << std::setw(14) << "||b||  = "    << std::setw(8) << beta1
@@ -930,7 +901,6 @@ hermitianSolver<INFO_t>::solve(INFO_t& client) const
 			  << std::setw(14) << "trancond  = " << std::setw(8) << trancond_
 			  << std::endl
 			  << "  "
-			  << UNDL("                                                                ")
 			  << std::endl << std::endl
 			  << std::flush;
 	}
@@ -1226,7 +1196,7 @@ hermitianSolver<INFO_t>::solve(INFO_t& client) const
 
 	if (client.print) {
 		_printstate(itn_, x[0], xnorm_, rnorm_, Arnorm_, relres, relAres, Anorm_, Acond_);
-		std::cout << "  " << FCYN("Exit MINRES-QLP") << ": "
+		std::cout << "  " << "Exit MINRES-QLP" << ": "
 			  << msg[istop_-1] << "\n\n";
 	}
 }
