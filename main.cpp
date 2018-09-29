@@ -24,10 +24,10 @@ extern "C" {
 void
 dgemv(const int m, const int n, const double alpha, const double* a, const double *x, const double beta, double *y)
 {
-        const char trans = 'T';
-        const int inc = 1, lda = n;
+    const char trans = 'T';
+    const int inc = 1, lda = n;
 
-        dgemv_(&trans, &n, &m, &alpha, a, &lda, x, &inc, &beta, y, &inc);
+    dgemv_(&trans, &n, &m, &alpha, a, &lda, x, &inc, &beta, y, &inc);
 }
 
 void
