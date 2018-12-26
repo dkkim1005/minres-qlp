@@ -76,8 +76,7 @@ struct baseInfo {
 	virtual void
 	Msolve(const int n, const float_t *x, float_t *y) const {
 		if(useMsolve) {
-			std::cout << " --- Error! Msolve is not overridden..." << std::endl;
-			exit(1);
+			std::cerr << " & Warning! the method Msolve is not overridden." << std::endl;
 		}
 	};
  
