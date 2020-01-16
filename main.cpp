@@ -62,9 +62,9 @@ transpose(const int n, float_t *A)
 }
 
 // format for a real type matrix 
-struct real_type : public minresqlp::baseInfo<double> {
+struct real_type : public MINRESQLP::BaseInfo<double> {
 	real_type(const int n_, const std::vector<double>& b_, const std::vector<double>& A_)
-	: baseInfo<double>(n_, b_), _A(A_), _nrowA(A_.size()/b_.size()) {
+	: BaseInfo<double>(n_, b_), _A(A_), _nrowA(A_.size()/b_.size()) {
  		assert(b_.size() == n_);
 	}
 
@@ -80,9 +80,9 @@ private:
 
 
 // format for a hermitian matrix
-struct hermite_type : public minresqlp::baseInfo<dcomplex> {
+struct hermite_type : public MINRESQLP::BaseInfo<dcomplex> {
 	hermite_type(const int n_, const std::vector<dcomplex>& b_, const std::vector<dcomplex>& A_)
-	: baseInfo<dcomplex>(n_, b_), _A(A_), _nrowA(A_.size()/b_.size())
+	: BaseInfo<dcomplex>(n_, b_), _A(A_), _nrowA(A_.size()/b_.size())
 	{
 		transpose(n_, &_A[0]);
 	}
@@ -121,7 +121,7 @@ int main(int argc, char* argv[])
 	real_type client(N, b, A);
 	client.print = true;
 
-	minresqlp::realSolver<real_type> solver;
+	MINRESQLP::RealSolver<real_type> solver;
 
 	std::cout << "\n\n   / Real type matrix solver(Ax=b) /" << std::endl;
 	solver.solve(client);
@@ -159,7 +159,7 @@ int main(int argc, char* argv[])
 	zclient.print     = true;
 
 	std::cout << "\n\n   / Hermitian matrix solver(Ax=b) /" << std::endl;
-	minresqlp::hermitianSolver<hermite_type> zsolver;
+	MINRESQLP::HermitianSolver<hermite_type> zsolver;
 
 	zsolver.solve(zclient);
 
