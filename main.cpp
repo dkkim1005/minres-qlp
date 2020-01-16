@@ -2,7 +2,7 @@
 #include <vector>
 #include <assert.h>
 #include <complex>
-#include "minresqlp.h"
+#include "minresqlp.hpp"
 
 typedef std::complex<double> dcomplex;
 
@@ -62,14 +62,13 @@ transpose(const int n, float_t *A)
 }
 
 // format for a real type matrix 
-struct real_type : public MINRESQLP::BaseInfo<double> {
+struct real_type : public MINRESQLP::BaseInterface<real_type, REAL<double>> {
 	real_type(const int n_, const std::vector<double>& b_, const std::vector<double>& A_)
-	: BaseInfo<double>(n_, b_), _A(A_), _nrowA(A_.size()/b_.size()) {
+	: BaseInterface<real_type, REAL<double> >(n_, &b_[0]), _A(A_), _nrowA(A_.size()/b_.size()) {
  		assert(b_.size() == n_);
 	}
 
-	virtual void
-	Aprod(const int n, const double *x, double *y) const override{
+	void Aprod(const int n, const double *x, double *y) const {
 		dgemv(_nrowA, n, 1, &_A[0], x, 0, y);
 	}
 
@@ -80,17 +79,17 @@ private:
 
 
 // format for a hermitian matrix
-struct hermite_type : public MINRESQLP::BaseInfo<dcomplex> {
-	hermite_type(const int n_, const std::vector<dcomplex>& b_, const std::vector<dcomplex>& A_)
-	: BaseInfo<dcomplex>(n_, b_), _A(A_), _nrowA(A_.size()/b_.size())
+struct HermitianWrapper: public MINRESQLP::BaseInterface<HermitianWrapper, IMAG<double> >
+{
+  HermitianWrapper(const int n, const std::vector<dcomplex>& b, const std::vector<dcomplex>& A):
+    BaseInterface<HermitianWrapper, IMAG<double> >(n, &b[0]), A_(A)
 	{
-		transpose(n_, &_A[0]);
+      //transpose(n, &A_[0]);
 	}
 
-	virtual void
-	Aprod(const int n, const dcomplex *x, dcomplex *y) const {
+	void Aprod(const int n, const dcomplex *x, dcomplex *y) const {
 		//zgemv(_nrowA, n, 1, &_A[0], x, 0, y);
-		zhemv(n, 1, &_A[0], &x[0], 0, &y[0]);
+		zhemv(n, 1, &A_[0], &x[0], 0, &y[0]);
 	}
 
 	/*
@@ -101,8 +100,7 @@ struct hermite_type : public MINRESQLP::BaseInfo<dcomplex> {
 	*/
 
 private:
-	std::vector<dcomplex> _A;
-	const int _nrowA;
+	const std::vector<dcomplex> & A_;
 };
 
 
@@ -121,7 +119,7 @@ int main(int argc, char* argv[])
 	real_type client(N, b, A);
 	client.print = true;
 
-	MINRESQLP::RealSolver<real_type> solver;
+	MINRESQLP::RealSolver<real_type, double> solver;
 
 	std::cout << "\n\n   / Real type matrix solver(Ax=b) /" << std::endl;
 	solver.solve(client);
@@ -152,14 +150,14 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	hermite_type zclient(N, zb, zA);
+	HermitianWrapper zclient(N, zb, zA);
 	// Setting options
 	zclient.useMsolve = false;
 	zclient.maxxnorm  = 1e7;
 	zclient.print     = true;
 
-	std::cout << "\n\n   / Hermitian matrix solver(Ax=b) /" << std::endl;
-	MINRESQLP::HermitianSolver<hermite_type> zsolver;
+	std::cout << "\n\n   / HermitianWrapper matrix solver(Ax=b) /" << std::endl;
+	MINRESQLP::HermitianSolver<HermitianWrapper, double> zsolver;
 
 	zsolver.solve(zclient);
 
